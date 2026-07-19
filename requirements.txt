@@ -1,0 +1,13 @@
+streamlit
+torch
+torchvision
+scikit-learn
+pandas
+numpy
+plotly
+Pillow
+xgboost
+deep-translator
+audio-recorder-streamlit
+SpeechRecognition
+twilio
