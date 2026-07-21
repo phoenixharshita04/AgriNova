@@ -1,11 +1,12 @@
-import sys
 import asyncio
-
+import sys
 if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+else:
     try:
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    except Exception:
-        pass
+        asyncio.get_event_loop_policy().get_event_loop()
+    except RuntimeError:
+        asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
 import streamlit as st
 import pandas as pd
