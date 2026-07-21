@@ -59,5 +59,6 @@ class ResourceOptimizer:
             "P_kg_ha": req_p,
             "K_kg_ha": req_k,
             "Total_Cost_INR": total_cost,
+            "Adjustment_Pct": abs(round((1 - final_multiplier)*100)),
             "Savings_Insight": f"Adjusted by {abs(round((1 - final_multiplier)*100))}% based on yield forecast and soil moisture."
         }

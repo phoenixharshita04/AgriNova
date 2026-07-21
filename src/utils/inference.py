@@ -22,25 +22,35 @@ def generate_agronomy_summary(yield_forecast, disease_status, disease_confidence
     Generates an automated text summary for the farmer explaining the forecast and giving recommendations.
     Translates the output if language_code is not 'en'.
     """
-    summary = f"### Agronomy Interpretation\n\n"
+    def _t(text):
+        return translate_text(text, language_code)
+
+    title = _t("### Agronomy Interpretation")
     
     # Yield section
-    summary += f"**Yield Forecast:** The current models project a yield of **{yield_forecast:.2f} tons/ha**. "
+    forecast_prefix = _t("**Yield Forecast:** The current models project a yield of")
+    tons_suffix = _t("tons/ha")
+    
     if yield_forecast > 3.0:
-        summary += "This indicates a strong harvest season, likely driven by optimal rainfall and healthy NDVI levels. "
+        yield_insight = _t("This indicates a strong harvest season, likely driven by optimal rainfall and healthy NDVI levels.")
     elif yield_forecast < 2.0:
-        summary += "This forecast is lower than average. Consider reviewing irrigation or nutrient application. "
+        yield_insight = _t("This forecast is lower than average. Consider reviewing irrigation or nutrient application.")
     else:
-        summary += "This is an average expected yield for this region. "
+        yield_insight = _t("This is an average expected yield for this region.")
         
-    summary += "\n\n"
+    summary = f"{title}\n\n{forecast_prefix} **{yield_forecast:.2f}** {tons_suffix}. {yield_insight}\n\n"
     
     # Disease section
     if "healthy" in disease_status.lower():
-        summary += f"**Crop Health:** The uploaded leaf image appears **Healthy** (Confidence: {disease_confidence*100:.1f}%). Continue standard monitoring protocols."
+        health_prefix = _t("**Crop Health:** The uploaded leaf image appears **Healthy**")
+        conf_text = _t("(Confidence:")
+        action_text = _t("Continue standard monitoring protocols.")
+        summary += f"{health_prefix} {conf_text} {disease_confidence*100:.1f}%). {action_text}"
     else:
         clean_disease_name = disease_status.replace("___", " - ").replace("_", " ")
-        summary += f"**⚠️ Disease Alert:** The uploaded image shows signs of **{clean_disease_name}** (Confidence: {disease_confidence*100:.1f}%). "
-        summary += "Immediate action is recommended. Consider targeted fungicide application or consulting a local agronomist."
+        alert_prefix = _t("**⚠️ Disease Alert:** The uploaded image shows signs of")
+        conf_text = _t("(Confidence:")
+        action_text1 = _t("Immediate action is recommended. Consider targeted fungicide application or consulting a local agronomist.")
+        summary += f"{alert_prefix} **{clean_disease_name}** {conf_text} {disease_confidence*100:.1f}%). {action_text1}"
         
-    return translate_text(summary, language_code)
+    return summary

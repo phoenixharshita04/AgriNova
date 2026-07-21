@@ -83,6 +83,21 @@ def load_price_model(crop):
     df_prices = generate_mandi_prices(crop, start_date, end_date)
     return get_price_model(df_prices), df_prices
 
+@st.cache_data
+def get_synthetic_features_cached(region, days_offset=120, years_offset=0):
+    end_date = pd.Timestamp.today().normalize()
+    if years_offset > 0:
+        start_date = end_date - pd.DateOffset(years=years_offset)
+    else:
+        start_date = end_date - pd.DateOffset(days=days_offset)
+    return generate_synthetic_features(start_date, end_date, region)
+
+@st.cache_data
+def get_forecast_cached(crop):
+    price_model, df_hist_prices = load_price_model(crop)
+    forecast_prices = price_model.forecast(days=30)
+    return forecast_prices, df_hist_prices
+
 with st.spinner(_t("Initializing AI Models (this may take a minute if downloading weights)...")):
     cv_model = load_cv_model()
     yield_model = load_yield_model()
@@ -155,9 +170,7 @@ with col1:
     
     # Generate mock historical data for visualization
     with st.spinner(_t("Loading remote sensing & weather data...")):
-        end_date = pd.Timestamp.today()
-        start_date = end_date - pd.DateOffset(days=120) # One season
-        df_ts = generate_synthetic_features(start_date, end_date, region)
+        df_ts = get_synthetic_features_cached(region, days_offset=120)
     
     tab1, tab2, tab3 = st.tabs([_t("Weather & Soil"), _t("NDVI (Remote Sensing)"), _t("Historical Analytics")])
     
@@ -175,8 +188,7 @@ with col1:
     with tab3:
         st.markdown("#### " + _t("5-Year Historical Trends"))
         with st.spinner(_t("Generating 5-year historical dataset...")):
-            hist_start = end_date - pd.DateOffset(years=5)
-            df_hist = generate_synthetic_features(hist_start, end_date, region)
+            df_hist = get_synthetic_features_cached(region, years_offset=5)
             
             # Multi-line chart tracking NDVI vs Rainfall
             fig_hist = go.Figure()
@@ -221,8 +233,7 @@ with col1:
     
     st.markdown("### " + _t("📊 Mandi Price Forecaster (30-Day)"))
     with st.spinner(_t("Generating price forecast...")):
-        price_model, df_hist_prices = load_price_model(crop_type)
-        forecast_prices = price_model.forecast(days=30)
+        forecast_prices, df_hist_prices = get_forecast_cached(crop_type)
         
         # Prepare data for plotting
         last_30_actual = df_hist_prices.tail(30)
@@ -326,7 +337,10 @@ with col2:
                 f"**K (Potassium):** {optimization_results['K_kg_ha']} kg")
         
         st.metric(label=_t("Estimated Fertilizer Cost"), value=f"₹{optimization_results['Total_Cost_INR']}")
-        st.caption(_t("AI Insight") + f": {_t(optimization_results['Savings_Insight'])}")
+        
+        # Avoid dynamic strings in translation caching
+        insight_val = optimization_results.get('Adjustment_Pct', 0)
+        st.caption(_t("AI Insight") + f": " + _t("Adjusted by") + f" {insight_val}% " + _t("based on yield forecast and soil moisture."))
 
     st.markdown("---")
     # Agronomy Summary
