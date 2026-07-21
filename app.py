@@ -37,24 +37,6 @@ selected_lang_code = lang_map[lang_choice]
 def _t(text):
     return translate_text(text, selected_lang_code)
 
-# Authentication Logic
-if 'authentication_status' not in st.session_state:
-    st.session_state['authentication_status'] = False
-
-if not st.session_state['authentication_status']:
-    st.title("🔒 " + _t("AgriNova Login"))
-    
-    username = st.text_input(_t("Username"))
-    password = st.text_input(_t("Password"), type="password")
-    submit_button = st.button(_t("Login"))
-    
-    if submit_button:
-        if username.strip() == "admin" and password.strip() == "admin123":
-            st.session_state['authentication_status'] = True
-            st.rerun()
-        else:
-            st.error(_t("Incorrect Username or Password"))
-    st.stop()  # Stop executing the rest of the app if not authenticated
 
 st.title(_t("🌱 AgriNova Dashboard"))
 st.subheader(_t("Crop Yield Forecasting & Early Disease Detection System"))
@@ -390,8 +372,3 @@ if prompt := st.sidebar.chat_input(_t("Ask about yield, disease, prices...")):
     with st.sidebar.chat_message("assistant"):
         st.markdown(translated_response)
 
-# --- Logout (Sidebar Bottom) ---
-st.sidebar.markdown("---")
-if st.sidebar.button("🚪 " + _t("Logout")):
-    st.session_state['authentication_status'] = False
-    st.rerun()
