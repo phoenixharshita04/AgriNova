@@ -1,9 +1,17 @@
+# Caches & Compiled Files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Databases
 *.db
 *.sqlite3
+
+# Environment Variables & Virtual Environments
 .env
-.venv
+.venv/
 venv/
 ENV/
+
+# Node Dependencies
+node_modules/
