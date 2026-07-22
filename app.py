@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 import asyncio
 import sys
 if sys.platform == 'win32':
